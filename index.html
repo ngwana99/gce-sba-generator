@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCE SBA Mini Project Generator</title>
+<script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #1a472a;
+  --gold: #c9a84c;
+  --gold-light: #f0d98a;
+  --cream: #faf8f3;
+  --dark: #0d1f14;
+  --light-green: #2d6a4f;
+  --pale: #f0ebe0;
+  --red: #c0392b;
+  --white: #ffffff;
+  --border: #ddd5c0;
+  --muted: #888070;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--cream);
+  min-height: 100vh;
+  color: var(--dark);
+}
+
+/* ── HEADER ── */
+header {
+  background: var(--green);
+  position: relative;
+  overflow: hidden;
+}
+.hdr-orb1 {
+  position: absolute; top: -50px; right: -50px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: rgba(201,168,76,0.13); pointer-events: none;
+}
+.hdr-orb2 {
+  position: absolute; bottom: -80px; left: 30%;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: rgba(201,168,76,0.06); pointer-events: none;
+}
+.hdr-inner { padding: 2.2rem 3rem; position: relative; z-index: 2; }
+.badge {
+  display: inline-block;
+  background: var(--gold);
+  color: var(--dark);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 0.6rem;
+}
+header h1 {
+  font-family: 'Playfair Display', serif;
+  color: var(--white);
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 0.3rem;
+}
+header p { color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 300; }
+.gold-line { height: 3px; background: linear-gradient(90deg, var(--gold), transparent); }
+
+/* ── SCREENS ── */
+.screen { display: none; }
+.screen.active { display: block; }
+.container { max-width: 840px; margin: 0 auto; padding: 2.5rem 1.5rem; }
+
+/* ── SCREEN 1: KEY ── */
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  max-width: 500px;
+  margin: 0 auto;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(26,71,42,0.06);
+}
+.card-icon { font-size: 2.8rem; margin-bottom: 0.9rem; }
+.card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  color: var(--green);
+  margin-bottom: 0.4rem;
+}
+.card > p {
+  font-size: 0.83rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 1.5rem;
+}
+.field-wrap { position: relative; margin-bottom: 1rem; text-align: left; }
+.field-wrap label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--green);
+  margin-bottom: 0.35rem;
+}
+.field-wrap input {
+  width: 100%;
+  padding: 0.72rem 2.6rem 0.72rem 0.9rem;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  font-size: 0.875rem;
+  font-family: monospace;
+  background: var(--cream);
+  color: var(--dark);
+  transition: border-color 0.2s;
+}
+.field-wrap input:focus { outline: none; border-color: var(--green); }
+.eye-btn {
+  position: absolute; right: 10px; bottom: 10px;
+  cursor: pointer; font-size: 1rem; opacity: 0.45;
+  background: none; border: none; padding: 0;
+}
+.btn-main {
+  width: 100%;
+  background: var(--green);
+  color: var(--white);
+  border: none;
+  border-radius: 7px;
+  padding: 0.8rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: background 0.15s, transform 0.1s;
+  margin-top: 0.25rem;
+}
+.btn-main:hover { background: var(--light-green); }
+.btn-main:active { transform: scale(0.98); }
+.btn-main:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
+.sec-note {
+  font-size: 0.73rem;
+  color: #aaa;
+  margin-top: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+.groq-note {
+  background: #e8f5ec;
+  border: 1px solid #b2dfbe;
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  font-size: 0.78rem;
+  color: #1a5c30;
+  margin-bottom: 1.2rem;
+  text-align: left;
+  line-height: 1.5;
+}
+
+/* ── SCREEN 2: TOPICS ── */
+.s2-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.s2-head h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  color: var(--green);
+}
+.s2-head p { font-size: 0.82rem; color: var(--muted); margin-top: 0.2rem; }
+.change-key {
+  font-size: 0.75rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  white-space: nowrap;
+}
+.change-key:hover { color: var(--green); }
+
+.labs-grid { display: flex; flex-direction: column; gap: 0.65rem; margin-bottom: 1.75rem; }
+.lab-row {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  padding: 0.9rem 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.lab-row:focus-within {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(26,71,42,0.07);
+}
+.lab-num {
+  background: var(--green);
+  color: var(--gold);
+  font-size: 0.68rem;
+  font-weight: 700;
+  width: 34px; height: 34px;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.04em;
+  font-family: 'Playfair Display', serif;
+}
+.lab-info { flex: 1; min-width: 0; }
+.lab-name {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--light-green);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 0.28rem;
+}
+.lab-sections {
+  font-size: 0.65rem;
+  color: #bbb;
+  margin-bottom: 0.35rem;
+  font-style: italic;
+}
+.lab-info input {
+  width: 100%;
+  border: none;
+  border-bottom: 1.5px solid #e0d8c8;
+  padding: 0.28rem 0;
+  font-size: 0.88rem;
+  font-family: 'Source Sans 3', sans-serif;
+  background: transparent;
+  color: var(--dark);
+  transition: border-color 0.2s;
+}
+.lab-info input:focus { outline: none; border-color: var(--green); }
+.lab-info input::placeholder { color: #c5bfb0; font-style: italic; font-size: 0.82rem; }
+
+.gen-btn {
+  background: linear-gradient(135deg, var(--gold) 0%, #b8923d 100%);
+  color: var(--dark);
+  border: none;
+  border-radius: 9px;
+  padding: 1rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: opacity 0.15s, transform 0.1s;
+  display: block;
+  width: 100%;
+  box-shadow: 0 4px 16px rgba(201,168,76,0.3);
+}
+.gen-btn:hover { opacity: 0.9; }
+.gen-btn:active { transform: scale(0.99); }
+.gen-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── SCREEN 3: PROGRESS ── */
+.prog-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 2.5rem 2rem;
+  max-width: 620px;
+  margin: 0 auto;
+  box-shadow: 0 4px 24px rgba(26,71,42,0.06);
+}
+.prog-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.45rem;
+  color: var(--green);
+  margin-bottom: 0.3rem;
+}
+.prog-card > p { font-size: 0.83rem; color: var(--muted); margin-bottom: 1.75rem; }
+
+.overall-track {
+  height: 8px; background: #e8e0d0; border-radius: 4px;
+  margin-bottom: 0.4rem; overflow: hidden;
+}
+.overall-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--gold));
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+.overall-label {
+  font-size: 0.75rem; color: var(--muted);
+  text-align: right; margin-bottom: 1.5rem;
+}
+
+.lp-list { display: flex; flex-direction: column; gap: 0.45rem; margin-bottom: 1.75rem; }
+.lp-item {
+  display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.58rem 0.8rem;
+  border-radius: 7px;
+  background: #f5f2ea;
+  font-size: 0.81rem;
+  transition: background 0.2s;
+}
+.lp-item.waiting  { background: #f5f2ea; }
+.lp-item.active   { background: #fff8e6; }
+.lp-item.done     { background: #e8f5ec; }
+.lp-item.error    { background: #fde8e8; }
+
+.lp-dot {
+  width: 9px; height: 9px; border-radius: 50%;
+  flex-shrink: 0; background: #ccc;
+  transition: background 0.2s;
+}
+.lp-item.active .lp-dot { background: var(--gold); animation: blink 0.9s infinite; }
+.lp-item.done   .lp-dot { background: #27ae60; }
+.lp-item.error  .lp-dot { background: var(--red); }
+@keyframes blink {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:0.4; transform:scale(1.4); }
+}
+.lp-name { flex: 1; font-weight: 600; color: var(--dark); }
+.lp-stat { font-size: 0.76rem; color: var(--muted); }
+.lp-item.active .lp-stat { color: #b8923d; }
+.lp-item.done   .lp-stat { color: #27ae60; }
+.lp-item.error  .lp-stat { color: var(--red); }
+
+.err-box {
+  background: #fde8e8; border: 1px solid #f5b8b8;
+  color: var(--red); border-radius: 7px;
+  padding: 0.7rem 0.9rem; font-size: 0.8rem;
+  margin-bottom: 1rem; display: none; line-height: 1.5;
+}
+.err-box.show { display: block; }
+
+.dl-btn {
+  background: var(--green); color: var(--white);
+  border: none; border-radius: 9px;
+  padding: 1rem 2rem; font-size: 0.95rem;
+  font-weight: 700; cursor: pointer;
+  width: 100%; text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: background 0.15s;
+  display: none;
+  box-shadow: 0 4px 16px rgba(26,71,42,0.2);
+}
+.dl-btn:hover { background: var(--light-green); }
+.dl-btn.show { display: block; }
+
+.back-btn {
+  background: none; border: 1.5px solid #ccc;
+  color: var(--muted); border-radius: 7px;
+  padding: 0.5rem 1rem; font-size: 0.78rem;
+  cursor: pointer; margin-top: 0.65rem;
+  width: 100%; transition: border-color 0.15s, color 0.15s;
+}
+.back-btn:hover { border-color: var(--green); color: var(--green); }
+
+.err-inline { color: var(--red); font-size: 0.78rem; margin-top: 0.4rem; display: none; }
+.err-inline.show { display: block; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hdr-orb1"></div><div class="hdr-orb2"></div>
+  <div class="hdr-inner">
+    <div class="badge">Cameroon GCE — OL Computer Science</div>
+    <h1>SBA Mini Project Generator</h1>
+    <p>Powered by Groq AI &nbsp;·&nbsp; All 10 Thematic Areas &nbsp;·&nbsp; Single .docx Output</p>
+  </div>
+  <div class="gold-line"></div>
+</header>
+
+<!-- ══ SCREEN 1: API KEY ══ -->
+<div class="screen active" id="s1">
+  <div class="container">
+    <div class="card">
+      <div class="card-icon">⚡</div>
+      <h2>Enter Your Groq API Key</h2>
+      <p>Your key is used only in your browser to call the Groq API. It is never stored or sent anywhere else.</p>
+      <div class="groq-note">
+        🔗 Don't have a key? Visit <strong>console.groq.com</strong> → API Keys → Create API Key.<br>
+        It's free and starts with <code>gsk_...</code>
+      </div>
+      <div class="field-wrap">
+        <label>Groq API Key</label>
+        <input type="password" id="keyInp" placeholder="gsk_..." autocomplete="off" />
+        <button class="eye-btn" onclick="toggleKey()">👁</button>
+      </div>
+      <div class="err-inline" id="keyErr">Key looks invalid. Groq keys start with <code>gsk_</code></div>
+      <button class="btn-main" onclick="doKeyNext()">Continue →</button>
+      <p class="sec-note">🔒 Stays in your browser only · Never logged or stored</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SCREEN 2: TOPICS ══ -->
+<div class="screen" id="s2">
+  <div class="container">
+    <div class="s2-head">
+      <div>
+        <h2>Enter 10 Project Topics</h2>
+        <p>Type one topic per thematic area. Leave blank to use the example topic.</p>
+      </div>
+      <button class="change-key" onclick="goTo(1)">← Change API key</button>
+    </div>
+    <div class="labs-grid" id="labsGrid"></div>
+    <button class="gen-btn" id="genBtn" onclick="startGen()">⚡ Generate All 10 Projects</button>
+  </div>
+</div>
+
+<!-- ══ SCREEN 3: PROGRESS ══ -->
+<div class="screen" id="s3">
+  <div class="container">
+    <div class="prog-card">
+      <h2>Generating Projects…</h2>
+      <p>Groq AI is writing each project report. This is very fast — usually under 60 seconds.</p>
+      <div class="overall-track"><div class="overall-fill" id="ofill"></div></div>
+      <div class="overall-label" id="olabel">0 / 10 complete</div>
+      <div class="lp-list" id="lpList"></div>
+      <div class="err-box" id="genErr"></div>
+      <button class="dl-btn" id="dlBtn" onclick="buildAndDownload()">⬇ Download All 10 Projects (.docx)</button>
+      <button class="back-btn" onclick="reset()">← Start Over</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// LABS DEFINITION
+// ═══════════════════════════════════════════════════════════
+const LABS = [
+  {
+    num:1, name:"Word Processing",
+    sections:["Introduction","Design","Implementation","Validation","Evaluation/Conclusion"],
+    eg:"Producing multiple invitation cards for a birthday party",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: WORD PROCESSING
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings (bold, underlined) in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State clearly the title of the project, give the main goal and identify the objectives. Describe the problem context clearly. (2-3 paragraphs)
+
+DESIGN
+Describe the general organisation of the word document. Sketch the layout description in words. Identify different sections (title, body, header, footer etc.) and the formatting features to be applied to each section. Mention specific MS Word formatting tools to be used (bold, italic, mail merge, tables, page border, WordArt, columns etc.). Present a small table: Document Section | Expected Formatting Feature.
+
+IMPLEMENTATION
+State the word processor used and its version (e.g. Microsoft Word 2016). Outline the main steps used:
+Step 1: Creating and typing information — describe how the document was created, what information was typed.
+Step 2: Formatting — describe formatting tools used for each section using MS Word menu paths (e.g. Home tab → Font group → Bold).
+Step 3: Any special features used (mail merge, table creation, inserting images etc.) with specific menu steps.
+[SCREENSHOT PLACEHOLDER: evidence of formatted document]
+
+VALIDATION
+Describe strategies used to ensure the result matches the expected output. Examples: meeting the teacher to validate, comparing output with initial design, proof-reading and editing.
+
+EVALUATION/CONCLUSION
+Outline the problems encountered and how they were solved. Propose new methods of solving the same or similar problems. (2 paragraphs)
+
+Keep each section focused. Maximum 2 pages total. Write in proper paragraphs, not bullet points.`
+  },
+  {
+    num:2, name:"Spreadsheets",
+    sections:["Introduction","Design","Implementation","Validation","Evaluation/Conclusion"],
+    eg:"Student Grade Calculation System for a secondary school class",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: SPREADSHEETS
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the problem — why a spreadsheet solution is needed. (2-3 paragraphs)
+
+DESIGN
+Identify all input variables and calculated variables. Present a variables table: Variable Name | Calculated Or Input | Formula | Description.
+Describe the worksheet layout in words (columns, rows, title, headers).
+Identify expected formatting features (bold headers, cell borders, fill color, merged cells, currency format etc.).
+Describe any charts to be created and what data they represent.
+
+IMPLEMENTATION
+State the spreadsheet software and version (e.g. Microsoft Excel 2016).
+Step 1: Creating worksheet and inputting data — describe the spreadsheet structure.
+Step 2: Entering formulas — present a table: Cell Name | Spreadsheet Formula. List at least 5 different formulas used with their purpose.
+Step 3: Formatting — describe formatting tools used for different cell ranges using Excel menu paths (e.g. Home tab → Alignment group → Merge & Center).
+Step 4: Creating charts — describe chart type, data range, and formatting if applicable.
+[SCREENSHOT PLACEHOLDER: evidence of completed spreadsheet with formulas]
+
+VALIDATION
+Describe strategies used to verify results match expected output. Example: using a calculator to cross-check computed values, testing with known data.
+
+EVALUATION/CONCLUSION
+Outline problems encountered and how they were solved. Describe any disadvantage and how it can be improved. (2 paragraphs)
+
+Maximum 2 pages. Write in proper paragraphs.`
+  },
+  {
+    num:3, name:"Web Authoring",
+    sections:["Introduction","Design","Implementation","Testing","Evaluation/Conclusion"],
+    eg:"Building a school website for Government Bilingual High School Douala",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: WEB AUTHORING (HTML/CSS)
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the context — why the website is needed and what it will contain. (2-3 paragraphs)
+
+DESIGN
+Describe the general organisation of the webpage(s). List all pages (e.g. Home, About, Contact).
+Describe each page section (header, navigation, body, footer).
+Identify HTML tags and elements to be used (h1, h2, p, table, img, a, ul, form etc.) and their purpose.
+Present a styles table: HTML Element or Class | Style Applied.
+Describe the overall layout and color scheme.
+
+IMPLEMENTATION
+Identify the text editor and browser used (e.g. Notepad++ and Google Chrome).
+Step 1: Creating the HTML page structure — describe how the DOCTYPE, head, and body were set up. Describe main HTML tags used.
+Step 2: Adding content — describe how text, images, tables, and links were added with specific HTML tags.
+Step 3: Styling the page — describe CSS styles applied to elements with specific properties (color, font-size, background, border etc.).
+[SCREENSHOT PLACEHOLDER: evidence of webpage displayed in browser]
+
+TESTING
+Describe how you ensured the result corresponds to your design. How the page was viewed in the browser and verified against the initial design sketch.
+
+EVALUATION/CONCLUSION
+State problems encountered in designing the page and how they were resolved. What new HTML/CSS skills were learned. (2 paragraphs)
+
+Maximum 3 pages. Write in proper paragraphs.`
+  },
+  {
+    num:4, name:"Database",
+    sections:["Introduction","Design","Implementation","Validation","Evaluation/Conclusion"],
+    eg:"Student Records Management System for a secondary school",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: DATABASE
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly. Maximum 3 database tables allowed.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the problem clearly — why a computerised database system is needed. (2-3 paragraphs)
+
+DESIGN
+The Logical Design:
+- Identify the main entities (at most 3)
+- Show table structures: TableName(PrimaryKey, Field2, Field3...)
+- Describe relationships between tables and their cardinality (one-to-many etc.)
+The Physical Design:
+- For each table present: Field Name | Field Type | Field Size | Key | Description
+- Identify primary keys and foreign keys
+
+IMPLEMENTATION
+State DBMS software and version (e.g. Microsoft Access 2016).
+Step 1: Creating the database and tables — describe tools used (e.g. Office Button → New Blank Database; Create tab → Table Design).
+Step 2: Creating data entry forms — describe how forms were created (Create tab → More Forms → Form Wizard). Describe fields on each form.
+Step 3: Creating queries — list at least 3 queries created. State tool used (Create tab → Query Design).
+Step 4: Creating reports — describe how reports were created from queries.
+[SCREENSHOT PLACEHOLDER: evidence of database tables and forms in MS Access]
+
+VALIDATION
+Describe test data used to populate the tables. Describe how query results were verified against expected output.
+
+EVALUATION/CONCLUSION
+Outline problems encountered and solutions. Propose future improvements to the system. (2 paragraphs)
+
+Maximum 2 pages. Write in proper paragraphs.`
+  },
+  {
+    num:5, name:"Computer Networks",
+    sections:["Introduction","Procedure","Evaluation/Conclusion"],
+    eg:"Setting up a Local Area Network (LAN) at a school computer laboratory",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: COMPUTER NETWORKS
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the context — what network problem existed and what solution was implemented.
+Identify and describe all network devices used: NIC, switch/hub, router, modem, cables (RJ45, Ethernet twisted pair, fibre optic etc.) with their specific functions.
+Identify the network type (LAN/WAN/PAN/MAN), topology used (star/bus/ring/mesh), and network architecture (client-server or peer-to-peer).
+Describe the layout of the network in words. (3-4 paragraphs)
+
+PROCEDURE
+Describe step-by-step exactly how the network was set up:
+Step 1: Materials — list all network materials bought/used with quantities.
+Step 2: Layout design — describe how the network layout was planned and drawn.
+Step 3: Cable preparation — describe measuring and cutting cables, attaching RJ45 connectors.
+Step 4: Connecting devices — describe connecting computers, switch, printer and other devices.
+Step 5: Configuration — describe any IP address configuration, sharing settings etc.
+[SCREENSHOT PLACEHOLDER: network layout diagram / evidence of connected network]
+
+EVALUATION/CONCLUSION
+Describe how the network was tested and verified (e.g. printing test pages from different workstations, file sharing tests). Outline problems encountered and solutions. Propose future improvements. (2 paragraphs)
+
+Maximum 1 page. Write in proper paragraphs.`
+  },
+  {
+    num:6, name:"Desktop Publishing",
+    sections:["Introduction","Design","Implementation","Testing","Evaluation/Conclusion"],
+    eg:"Designing advertisement flyers for a new bilingual college in Bertoua",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: DESKTOP PUBLISHING
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the context — who the client is, what they need and why. (2-3 paragraphs)
+
+DESIGN
+Describe the layout and content of the publication. Identify all design elements to be included (images, background, shapes, text boxes, logo, contact information etc.).
+Describe the color scheme, font choices, and overall visual style.
+Describe how information was gathered from the client (specifications, images, text content).
+
+IMPLEMENTATION
+Identify Microsoft Publisher software and version (e.g. Microsoft Publisher 2016).
+Step 1: Launching Publisher and selecting template — describe how the template was chosen or scratch design started.
+Step 2: Setting page design — describe using Page Design tab features (color scheme, font scheme, page background).
+Step 3: Inserting and editing images — describe Insert tab → Pictures/Online Pictures. How images were resized and positioned.
+Step 4: Adding and formatting text — describe editing text boxes, font formatting (bold, italic, font size, color) using Home tab → Font group.
+Step 5: Adding shapes and decorative elements — describe Insert tab → Shapes.
+[SCREENSHOT PLACEHOLDER: evidence of completed publication in MS Publisher]
+
+TESTING
+Describe how the completed design was printed and presented to the client. What feedback was received and what edits were made.
+
+EVALUATION/CONCLUSION
+Outline problems encountered (e.g. image quality, alignment issues) and how they were solved. What new Publisher skills were learned. (2 paragraphs)
+
+Maximum 2 pages. Write in proper paragraphs.`
+  },
+  {
+    num:7, name:"Basic Computer Maintenance",
+    sections:["Introduction","Procedure","Evaluation/Conclusion"],
+    eg:"Installing and updating an antivirus software on a school computer",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: BASIC COMPUTER MAINTENANCE
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the context — what maintenance problem existed, who requested the work, and on what computer system.
+Describe the computer system used (operating system, RAM, processor if relevant).
+List and describe all tools used — both software tools (antivirus, utility software, drivers etc.) and hardware tools if applicable. (2-3 paragraphs)
+
+PROCEDURE
+Describe step-by-step exactly how the maintenance task was carried out. Be very specific about menus clicked, buttons pressed, settings changed, and observations made at each step.
+Step 1: [first action taken]
+Step 2: [second action taken]
+... continue for all steps.
+Include what was observed on screen at important steps.
+[SCREENSHOT PLACEHOLDER: evidence of maintenance task completed — software interface or result screen]
+
+EVALUATION/CONCLUSION
+Describe whether the maintenance task was successful and how it was verified. Outline any problems encountered during the process and how they were resolved. Propose an alternative method that could achieve the same result. (2 paragraphs)
+
+Maximum 1 page. Write in proper paragraphs.`
+  },
+  {
+    num:8, name:"Data Collection & Management",
+    sections:["Introduction","Procedure","Evaluation/Conclusion"],
+    eg:"Collecting data on computer usage habits among students in a Douala secondary school",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: DATA COLLECTION AND MANAGEMENT
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the context and purpose of the data collection — who commissioned it and why the data is needed.
+State the data collection method/technique used (observation, questionnaire, interview, online form e.g. Google Forms) and justify why this method was chosen.
+State who/what the data is collected from (target group). (2-3 paragraphs)
+
+PROCEDURE
+Step 1: Identifying data items — list and describe all data items to be collected (at least 6 specific items).
+Step 2: Designing the collection tool — describe the design of the form/questionnaire/observation sheet. List the specific questions or fields included.
+Step 3: Collecting data — describe exactly how the tool was administered to the target group. How many people were reached. How long it took.
+Step 4: Organising/structuring the data — describe how collected data was organised (table with rows and columns, CSV file, spreadsheet). Describe the column headings used.
+Step 5: Storing and protecting the data — describe how data was saved, backed up, and any confidentiality measures taken (password, encryption etc.).
+[SCREENSHOT PLACEHOLDER: evidence of data collection tool (form/questionnaire) and/or structured data table]
+
+EVALUATION/CONCLUSION
+Describe how successful the project was. Outline difficulties encountered (e.g. unwilling respondents) and how they were overcome. Propose improvements for future data collection. (2 paragraphs)
+
+Maximum 1 page. Write in proper paragraphs.`
+  },
+  {
+    num:9, name:"Graphics Software",
+    sections:["Introduction","Design","Implementation","Validation","Evaluation/Conclusion"],
+    eg:"Creating a school map art using Microsoft Paint",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: GRAPHICS SOFTWARE
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly.
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe who needs the graphic and why it is needed. (2-3 paragraphs)
+
+DESIGN
+Identify the graphics software used (e.g. Microsoft Paint or GIMP). State the version.
+Describe what the image will look like — all objects to draw, shapes used, colours planned.
+Identify all MS Paint/graphics software features to be used: Rectangle, Line, Curve, Circle/Ellipse, Pencil, Eraser, Fill with Color, Airbrush, Text, Selection tool, Copy/Paste, Zoom. Explain what each will be used for.
+
+IMPLEMENTATION
+Describe step-by-step how the image was created:
+Step 1: Creating the sketch — describe each shape drawn, tools used, and settings (e.g. Rectangle, Size 8px).
+Step 2: Refining the image — describe how erasing and adjusting was done to improve the sketch.
+Step 3: Adding colors — describe using Fill with Colors feature for different regions. Describe using Airbrush for special effects.
+Step 4: Final touches — cropping, text labels added, final adjustments.
+For each step mention specific Paint tool names and settings used.
+[SCREENSHOT PLACEHOLDER: evidence of completed graphic artwork in graphics software]
+
+VALIDATION
+Describe how the image was printed and evaluated. How was it compared to the original sketch design. Was the client or teacher satisfied.
+
+EVALUATION/CONCLUSION
+Outline specific difficulties encountered (e.g. drawing curved shapes, cloud representations) and exactly how they were solved. What would be done differently next time. (2 paragraphs)
+
+Maximum 2 pages. Write in proper paragraphs.`
+  },
+  {
+    num:10, name:"Programming",
+    sections:["Introduction","Design","Implementation","Testing","Evaluation/Conclusion"],
+    eg:"Writing a program to calculate the Body Mass Index (BMI) for students",
+    prompt: t => `Write a GCE Ordinary Level Computer Science SBA mini project report.
+Thematic Area: PROGRAMMING
+Topic: "${t}"
+Context: Cameroon secondary school. Write in first-person student voice. Follow GCE TAEN21 guidelines exactly. Use C programming language (Dev C++).
+
+Use EXACTLY these headings in this order:
+
+TITLE: [write an appropriate project title here]
+
+INTRODUCTION
+State the title, give the main goal and objectives. Describe the problem to be solved clearly.
+Present sample inputs and expected outputs: INPUT column and OUTPUT column table with at least 3 test cases.
+(2-3 paragraphs)
+
+DESIGN
+Algorithm: Write the pseudocode or algorithm for the program step by step (Begin...End format).
+Variables table: Variable Name | Calculated Or Input | Type (int/float/char/string) | Formula (if calculated) | Description
+Test plan (dry run): Test Number | Test Data | Expected Result | Result after Dry Run
+
+IMPLEMENTATION
+State programming language and IDE used (C language with Dev C++ IDE).
+Step 1: Coding — describe how the program was written. Show the key source code snippet (the actual C code — include #include, int main(), variables, scanf, printf, if-else or loops as appropriate for the project).
+Step 2: Compiling and correcting errors — describe compilation process using Dev C++. Describe any syntax errors encountered and how they were corrected.
+[SCREENSHOT PLACEHOLDER: evidence of source code in Dev C++ IDE and program output screen]
+
+TESTING
+Present testing results table: Test Number | Test Data | Expected Result | Actual Result after Running Program.
+Describe whether all test results matched expected output.
+
+EVALUATION/CONCLUSION
+Outline main difficulties encountered (e.g. syntax errors, logical errors, scanf issues) and exactly how each was solved. List 3 programming skills learned from this project. (2 paragraphs)
+
+Maximum 2 pages. Write in proper paragraphs.`
+  }
+];
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let apiKey = '';
+let topics = [];
+let results = []; // {lab, topic, content, error}
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function goTo(n) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(`s${n}`).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function reset() {
+  results = []; topics = [];
+  document.getElementById('dlBtn').classList.remove('show');
+  document.getElementById('genErr').classList.remove('show');
+  goTo(1);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN 1
+// ═══════════════════════════════════════════════════════════
+function toggleKey() {
+  const i = document.getElementById('keyInp');
+  i.type = i.type === 'password' ? 'text' : 'password';
+}
+
+function doKeyNext() {
+  const k = document.getElementById('keyInp').value.trim();
+  const err = document.getElementById('keyErr');
+  if (!k || !k.startsWith('gsk_')) { err.classList.add('show'); return; }
+  err.classList.remove('show');
+  apiKey = k;
+  buildGrid();
+  goTo(2);
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN 2
+// ═══════════════════════════════════════════════════════════
+function buildGrid() {
+  const g = document.getElementById('labsGrid');
+  g.innerHTML = '';
+  LABS.forEach(lab => {
+    const d = document.createElement('div');
+    d.className = 'lab-row';
+    d.innerHTML = `
+      <div class="lab-num">${lab.num}</div>
+      <div class="lab-info">
+        <div class="lab-name">Lab ${lab.num}: ${lab.name}</div>
+        <div class="lab-sections">${lab.sections.join(' · ')}</div>
+        <input type="text" id="t${lab.num}" placeholder="${lab.eg}" />
+      </div>`;
+    g.appendChild(d);
+  });
+}
+
+async function startGen() {
+  topics = LABS.map(l => {
+    const v = document.getElementById(`t${l.num}`).value.trim();
+    return v || l.eg;
+  });
+  document.getElementById('genBtn').disabled = true;
+  buildLPList();
+  goTo(3);
+  await runGeneration();
+}
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN 3 — PROGRESS
+// ═══════════════════════════════════════════════════════════
+function buildLPList() {
+  const c = document.getElementById('lpList');
+  c.innerHTML = '';
+  LABS.forEach((lab, i) => {
+    const d = document.createElement('div');
+    d.className = 'lp-item waiting';
+    d.id = `lp${i}`;
+    d.innerHTML = `<div class="lp-dot"></div>
+      <div class="lp-name">Lab ${lab.num}: ${lab.name}</div>
+      <div class="lp-stat">Waiting…</div>`;
+    c.appendChild(d);
+  });
+}
+
+function setLP(i, cls, msg) {
+  const el = document.getElementById(`lp${i}`);
+  el.className = `lp-item ${cls}`;
+  el.querySelector('.lp-stat').textContent = msg;
+}
+
+function updateBar(done) {
+  document.getElementById('ofill').style.width = (done/10*100)+'%';
+  document.getElementById('olabel').textContent = `${done} / 10 complete`;
+}
+
+async function callGroq(prompt) {
+  const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [
+        { role: 'system', content: 'You are an expert GCE Computer Science teacher in Cameroon. You write complete, detailed, high-quality SBA project reports following the TAEN21 guidelines exactly. Always write in first-person student voice. Always include all required sections with the exact headings specified. Write in proper paragraphs, not bullet points. Be specific and technical.' },
+        { role: 'user', content: prompt }
+      ],
+      temperature: 0.65,
+      max_tokens: 2000
+    })
+  });
+  if (!r.ok) {
+    const e = await r.json();
+    throw new Error(e.error?.message || `HTTP ${r.status}`);
+  }
+  const d = await r.json();
+  return d.choices?.[0]?.message?.content || '';
+}
+
+async function runGeneration() {
+  results = [];
+  let done = 0;
+  const errEl = document.getElementById('genErr');
+
+  for (let i = 0; i < LABS.length; i++) {
+    setLP(i, 'active', 'Generating…');
+    try {
+      const content = await callGroq(LABS[i].prompt(topics[i]));
+      results.push({ lab: LABS[i], topic: topics[i], content, error: null });
+      setLP(i, 'done', '✓ Complete');
+    } catch(e) {
+      results.push({ lab: LABS[i], topic: topics[i], content: null, error: e.message });
+      setLP(i, 'error', '✗ Failed');
+    }
+    done++;
+    updateBar(done);
+    await new Promise(r => setTimeout(r, 300));
+  }
+
+  const failed = results.filter(r => !r.content).length;
+  if (failed > 0) {
+    errEl.innerHTML = `⚠ ${failed} project(s) failed. They will have placeholder text in the document.<br><small>${results.filter(r=>r.error).map(r=>r.lab.name+': '+r.error).join('<br>')}</small>`;
+    errEl.classList.add('show');
+  }
+  document.getElementById('dlBtn').classList.add('show');
+}
+
+// ═══════════════════════════════════════════════════════════
+// DOCX BUILDER
+// ═══════════════════════════════════════════════════════════
+const MARGIN = 1440; // 1 inch in DXA
+const FONT = 'Times New Roman';
+
+function getDocx() {
+  return window.docx;
+}
+
+function P(text, opts={}) {
+  const { Paragraph, TextRun, AlignmentType, UnderlineType } = getDocx();
+  return new Paragraph({
+    alignment: opts.center ? AlignmentType.CENTER : AlignmentType.JUSTIFIED,
+    spacing: { before: opts.before||0, after: opts.after||120, line: 276 },
+    children: [new TextRun({
+      text: text||'',
+      size: opts.size||24,
+      font: FONT,
+      bold: opts.bold||false,
+      italics: opts.italic||false,
+      color: opts.color||'000000',
+      underline: opts.underline ? { type: UnderlineType.SINGLE } : undefined,
+    })]
+  });
+}
+
+function H1(text) {
+  const { Paragraph, TextRun, AlignmentType, UnderlineType } = getDocx();
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 120, after: 160 },
+    children: [new TextRun({ text, size: 28, font: FONT, bold: true, underline: { type: UnderlineType.SINGLE } })]
+  });
+}
+
+function H2(text) {
+  const { Paragraph, TextRun, UnderlineType } = getDocx();
+  return new Paragraph({
+    spacing: { before: 260, after: 100 },
+    children: [new TextRun({ text, size: 26, font: FONT, bold: true, underline: { type: UnderlineType.SINGLE } })]
+  });
+}
+
+function labHeader(lab) {
+  const { Paragraph, TextRun, AlignmentType, ShadingType } = getDocx();
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 0, after: 80 },
+    shading: { type: ShadingType.SOLID, color: '1a472a', fill: '1a472a' },
+    children: [new TextRun({ text: `  LAB ${lab.num}: ${lab.name.toUpperCase()}  `, size: 24, font: FONT, bold: true, color: 'FFFFFF' })]
+  });
+}
+
+function screenshotBox(label) {
+  const { Paragraph, TextRun, AlignmentType, BorderStyle } = getDocx();
+  return new Paragraph({
+    alignment: AlignmentType.CENTER,
+    spacing: { before: 160, after: 160 },
+    border: {
+      top:    { style: BorderStyle.DASHED, size: 8, color: '888888' },
+      bottom: { style: BorderStyle.DASHED, size: 8, color: '888888' },
+      left:   { style: BorderStyle.DASHED, size: 8, color: '888888' },
+      right:  { style: BorderStyle.DASHED, size: 8, color: '888888' },
+    },
+    children: [
+      new TextRun({ text: `[  SCREENSHOT: ${label}  — paste your screenshot here  ]`, size: 20, font: FONT, italics: true, color: '777777' })
+    ]
+  });
+}
+
+function parseProjectContent(raw, lab) {
+  if (!raw) return null;
+
+  // Extract title
+  let title = lab.eg;
+  const titleMatch = raw.match(/TITLE:\s*(.+)/i);
+  if (titleMatch) title = titleMatch[1].replace(/\*+/g,'').trim();
+
+  // Extract sections
+  const sections = {};
+  const sectionNames = [...lab.sections];
+  // Add aliases
+  const aliases = {
+    'EVALUATION/CONCLUSION': ['EVALUATION/CONCLUSION','EVALUATION / CONCLUSION','CONCLUSION/EVALUATION','CONCLUSION'],
+    'PROCEDURE': ['PROCEDURE'],
+    'INTRODUCTION': ['INTRODUCTION'],
+    'DESIGN': ['DESIGN'],
+    'IMPLEMENTATION': ['IMPLEMENTATION'],
+    'VALIDATION': ['VALIDATION'],
+    'TESTING': ['TESTING'],
+  };
+
+  const lines = raw.split('\n');
+  let current = null;
+  for (const line of lines) {
+    const t = line.trim().replace(/\*+/g,'').replace(/^#+\s*/,'');
+    if (!t) continue;
+    // Check if this line is a section heading
+    let matched = null;
+    for (const sn of sectionNames) {
+      const alts = aliases[sn.toUpperCase()] || [sn.toUpperCase()];
+      if (alts.some(a => t.toUpperCase() === a || t.toUpperCase().startsWith(a+':'))) {
+        matched = sn; break;
+      }
+    }
+    if (matched) { current = matched; sections[current] = sections[current]||[]; continue; }
+    if (t.toUpperCase().startsWith('TITLE:')) continue;
+    if (current) sections[current].push(t);
+  }
+  return { title, sections };
+}
+
+// Determine where screenshot placeholders go per lab
+const SCREENSHOT_MAP = {
+  'Word Processing':          { 'Implementation': 'Formatted document — MS Word output' },
+  'Spreadsheets':             { 'Implementation': 'Completed spreadsheet with formulas — MS Excel' },
+  'Web Authoring':            { 'Implementation': 'Webpage displayed in browser', 'Testing': 'Final webpage output' },
+  'Database':                 { 'Implementation': 'Database tables and forms — MS Access' },
+  'Computer Networks':        { 'Procedure': 'Network layout diagram or connected devices' },
+  'Desktop Publishing':       { 'Implementation': 'Completed publication — MS Publisher', 'Testing': 'Printed publication output' },
+  'Basic Computer Maintenance': { 'Procedure': 'Maintenance task result — software interface' },
+  'Data Collection & Management': { 'Procedure': 'Data collection form and/or structured data table' },
+  'Graphics Software':        { 'Implementation': 'Completed graphic artwork — graphics software' },
+  'Programming':              { 'Implementation': 'Source code in Dev C++ and program output' },
+};
+
+function buildProjectParagraphs(item, isLast) {
+  const children = [];
+  const { lab, topic } = item;
+
+  // Green lab header bar
+  children.push(labHeader(lab));
+
+  // Title
+  const parsed = parseProjectContent(item.content, lab);
+  const title = parsed?.title || topic;
+  children.push(H1(`Title: ${title}`));
+  children.push(P(''));
+
+  const ssMap = SCREENSHOT_MAP[lab.name] || {};
+
+  if (!item.content) {
+    children.push(P('[Content generation failed. Please write this project manually.]', { italic: true, color: '888888' }));
+  } else {
+    for (const sectionName of lab.sections) {
+      children.push(H2(sectionName));
+
+      // Get section content
+      const sectionParas = parsed?.sections?.[sectionName] || [];
+
+      if (sectionParas.length > 0) {
+        // Group into logical paragraphs (merge short lines)
+        let buffer = '';
+        for (const line of sectionParas) {
+          // Detect if this looks like a sub-heading (Step N:, short bold-like line)
+          const isStep = /^Step\s+\d+[:\.]/i.test(line) || /^\d+\.\s+/.test(line);
+          if (isStep && buffer) {
+            children.push(P(buffer));
+            buffer = '';
+            children.push(P(line, { bold: true }));
+          } else if (line.endsWith(':') && line.length < 60) {
+            if (buffer) { children.push(P(buffer)); buffer = ''; }
+            children.push(P(line, { bold: true }));
+          } else {
+            buffer = buffer ? buffer + ' ' + line : line;
+          }
+        }
+        if (buffer) children.push(P(buffer));
+      } else {
+        children.push(P(`[Write the ${sectionName} section here]`, { italic: true, color: '999999' }));
+      }
+
+      // Screenshot placeholder after this section?
+      if (ssMap[sectionName]) {
+        children.push(screenshotBox(ssMap[sectionName]));
+      }
+
+      children.push(P(''));
+    }
+  }
+
+  if (!isLast) children.push(new Paragraph({ children: [new PageBreak()] }));
+  return children;
+}
+
+async function buildAndDownload() {
+  const btn = document.getElementById('dlBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Building document…';
+
+  const allChildren = [];
+  results.forEach((item, idx) => {
+    const paras = buildProjectParagraphs(item, idx === results.length - 1);
+    allChildren.push(...paras);
+  });
+
+  const doc = new Document({
+    styles: {
+      default: { document: { run: { font: FONT, size: 24 } } },
+      paragraphStyles: [
+        { id:'Heading1', name:'Heading 1', basedOn:'Normal', next:'Normal',
+          run:{ size:28, bold:true, font:FONT, color:'000000' },
+          paragraph:{ spacing:{ before:120, after:160 }, alignment: AlignmentType.CENTER } },
+        { id:'Heading2', name:'Heading 2', basedOn:'Normal', next:'Normal',
+          run:{ size:26, bold:true, font:FONT, color:'000000' },
+          paragraph:{ spacing:{ before:260, after:100 } } },
+      ]
+    },
+    sections: [{
+      properties: {
+        page: {
+          size: { width: 11906, height: 16838 },
+          margin: { top: MARGIN, right: MARGIN, bottom: MARGIN, left: MARGIN }
+        }
+      },
+      children: allChildren
+    }]
+  });
+
+  const blob = await Packer.toBlob(doc);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'GCE_SBA_All_10_Projects.docx';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  btn.disabled = false;
+  btn.textContent = '⬇ Download All 10 Projects (.docx)';
+}
+</script>
+</body>
+</html>
