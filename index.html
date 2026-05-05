@@ -422,7 +422,7 @@ header p { color: rgba(255,255,255,0.6); font-size: 0.85rem; font-weight: 300; }
   <div class="container">
     <div class="prog-card">
       <h2>Generating Projects…</h2>
-      <p>Groq AI is writing each project report. This is very fast — usually under 60 seconds.</p>
+      <p>Groq AI is writing each project. To avoid rate limits, labs are paced automatically — <strong>total time ~3–4 minutes</strong>. Please keep this tab open.</p>
       <div class="overall-track"><div class="overall-fill" id="ofill"></div></div>
       <div class="overall-label" id="olabel">0 / 10 complete</div>
       <div class="lp-list" id="lpList"></div>
@@ -900,7 +900,23 @@ function updateBar(done) {
   document.getElementById('olabel').textContent = `${done} / 10 complete`;
 }
 
-async function callGroq(prompt) {
+// ── Wait with live countdown shown in the lab status ──
+async function waitWithCountdown(seconds, labIndex) {
+  for (let s = Math.ceil(seconds); s > 0; s--) {
+    setLP(labIndex, 'active', `⏳ Rate limit — retrying in ${s}s…`);
+    await new Promise(r => setTimeout(r, 1000));
+  }
+}
+
+// ── Extract retry-after seconds from Groq error message ──
+function parseRetryAfter(msg) {
+  const m = msg.match(/try again in ([0-9.]+)s/i);
+  if (m) return parseFloat(m[1]) + 2; // add 2s buffer
+  return 15; // default fallback
+}
+
+// ── Single Groq call (no retry) ──
+async function callGroqOnce(prompt) {
   const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -910,30 +926,72 @@ async function callGroq(prompt) {
     body: JSON.stringify({
       model: 'llama-3.3-70b-versatile',
       messages: [
-        { role: 'system', content: 'You are an expert GCE Computer Science teacher in Cameroon. You write complete, detailed, high-quality SBA project reports following the TAEN21 guidelines exactly. Always write in first-person student voice. Always include all required sections with the exact headings specified. Write in proper paragraphs, not bullet points. Be specific and technical.' },
+        {
+          role: 'system',
+          content: 'You are an expert GCE Computer Science teacher in Cameroon. You write complete, detailed, high-quality SBA project reports following the TAEN21 guidelines exactly. Always write in first-person student voice. Always include all required sections with the exact headings specified. Write in proper paragraphs, not bullet points. Be specific and technical.'
+        },
         { role: 'user', content: prompt }
       ],
       temperature: 0.65,
-      max_tokens: 2000
+      max_tokens: 1800
     })
   });
+  const data = await r.json();
   if (!r.ok) {
-    const e = await r.json();
-    throw new Error(e.error?.message || `HTTP ${r.status}`);
+    const msg = data.error?.message || `HTTP ${r.status}`;
+    const isRateLimit = r.status === 429 || msg.toLowerCase().includes('rate limit');
+    throw { message: msg, isRateLimit, retryAfter: parseRetryAfter(msg) };
   }
-  const d = await r.json();
-  return d.choices?.[0]?.message?.content || '';
+  return data.choices?.[0]?.message?.content || '';
+}
+
+// ── Call with automatic retry on rate limit (up to 3 attempts) ──
+async function callGroq(prompt, labIndex) {
+  const MAX_RETRIES = 3;
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await callGroqOnce(prompt);
+    } catch(err) {
+      if (err.isRateLimit && attempt < MAX_RETRIES) {
+        await waitWithCountdown(err.retryAfter, labIndex);
+        setLP(labIndex, 'active', `Retrying… (attempt ${attempt + 1}/${MAX_RETRIES})`);
+      } else {
+        throw new Error(err.message || String(err));
+      }
+    }
+  }
 }
 
 async function runGeneration() {
   results = [];
   let done = 0;
   const errEl = document.getElementById('genErr');
+  errEl.classList.remove('show');
+
+  // Process labs in batches of 3 with a gap between batches
+  // to stay well within the 12,000 TPM limit
+  const BATCH_SIZE = 3;
+  const BETWEEN_CALLS_MS = 8000;   // 8s between individual calls
+  const BETWEEN_BATCHES_MS = 20000; // 20s between batches
 
   for (let i = 0; i < LABS.length; i++) {
+    // Pause between batches (every BATCH_SIZE labs)
+    if (i > 0 && i % BATCH_SIZE === 0) {
+      // Show countdown on all pending items
+      for (let s = BETWEEN_BATCHES_MS / 1000; s > 0; s--) {
+        // show waiting on the next lab
+        setLP(i, 'active', `⏳ Batch pause — resuming in ${s}s…`);
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    } else if (i > 0) {
+      // Small gap between individual calls within a batch
+      setLP(i, 'active', `⏳ Starting in ${BETWEEN_CALLS_MS/1000}s…`);
+      await new Promise(r => setTimeout(r, BETWEEN_CALLS_MS));
+    }
+
     setLP(i, 'active', 'Generating…');
     try {
-      const content = await callGroq(LABS[i].prompt(topics[i]));
+      const content = await callGroq(LABS[i].prompt(topics[i]), i);
       results.push({ lab: LABS[i], topic: topics[i], content, error: null });
       setLP(i, 'done', '✓ Complete');
     } catch(e) {
@@ -942,12 +1000,12 @@ async function runGeneration() {
     }
     done++;
     updateBar(done);
-    await new Promise(r => setTimeout(r, 300));
   }
 
   const failed = results.filter(r => !r.content).length;
   if (failed > 0) {
-    errEl.innerHTML = `⚠ ${failed} project(s) failed. They will have placeholder text in the document.<br><small>${results.filter(r=>r.error).map(r=>r.lab.name+': '+r.error).join('<br>')}</small>`;
+    errEl.innerHTML = `⚠ ${failed} project(s) failed and will have placeholder text.<br>
+      <small>${results.filter(r => r.error).map(r => `<b>${r.lab.name}</b>: ${r.error}`).join('<br>')}</small>`;
     errEl.classList.add('show');
   }
   document.getElementById('dlBtn').classList.add('show');
@@ -1135,7 +1193,10 @@ function buildProjectParagraphs(item, isLast) {
     }
   }
 
-  if (!isLast) children.push(new Paragraph({ children: [new PageBreak()] }));
+  if (!isLast) {
+    const { Paragraph, PageBreak } = getDocx();
+    children.push(new Paragraph({ children: [new PageBreak()] }));
+  }
   return children;
 }
 
@@ -1143,6 +1204,8 @@ async function buildAndDownload() {
   const btn = document.getElementById('dlBtn');
   btn.disabled = true;
   btn.textContent = '⏳ Building document…';
+
+  const { Document, Packer, AlignmentType } = getDocx();
 
   const allChildren = [];
   results.forEach((item, idx) => {
